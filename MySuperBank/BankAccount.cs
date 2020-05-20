@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Transactions;
 using System.Collections.Generic;
 
-namespace MySuperBank
+namespace classes
 {
     public class BankAccount
-    { 
+    {
         public string Number { get; }
         public string Owner { get; set; }
+        #region BalanceComputation
         public decimal Balance
         {
             get
@@ -17,23 +17,29 @@ namespace MySuperBank
                 {
                     balance += item.Amount;
                 }
+
                 return balance;
             }
         }
+        #endregion
 
         private static int accountNumberSeed = 1234567890;
-
-        private List<Transaction> allTransactions = new List<Transaction>();
-
-        public BankAccount(string name)
+        #region Constructor
+        public BankAccount(string name, decimal initialBalance)
         {
-            this.Owner = name;
-
             this.Number = accountNumberSeed.ToString();
             accountNumberSeed++;
 
+            this.Owner = name;
+            MakeDeposit(initialBalance, DateTime.Now, "Initial balance");
         }
+        #endregion
 
+        #region TransactionDeclaration
+        private List<Transaction> allTransactions = new List<Transaction>();
+        #endregion
+
+        #region DepositAndWithdrawal
         public void MakeDeposit(decimal amount, DateTime date, string note)
         {
             if (amount <= 0)
@@ -57,6 +63,23 @@ namespace MySuperBank
             var withdrawal = new Transaction(-amount, date, note);
             allTransactions.Add(withdrawal);
         }
+        #endregion
 
+        #region History
+        public string GetAccountHistory()
+        {
+            var report = new System.Text.StringBuilder();
+
+            decimal balance = 0;
+            report.AppendLine("Date\t\tAmount\tBalance\tNote");
+            foreach (var item in allTransactions)
+            {
+                balance += item.Amount;
+                report.AppendLine($"{item.Date.ToShortDateString()}\t{item.Amount}\t{balance}\t{item.Notes}");
+            }
+
+            return report.ToString();
+        }
+        #endregion
     }
 }
